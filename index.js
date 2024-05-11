@@ -1,23 +1,32 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const { body, validationResult } = require("express-validator");
-const cors = require("cors")
+const cors = require("cors");
 const app = express();
 const PORT = 3000;
 
-app.use(cors())
+app.use(cors());
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 // Middleware to parse URL-encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
 // Validation middleware
 const validateForm = [
-  body("name").notEmpty().withMessage("Name is required"),
-  body("email").isEmail().withMessage("Invalid email address"),
-  body("telephone").isNumeric().withMessage("Telephone is number only"),
+  body("name").isAlpha(),
+  body("email").isEmail(),
+  body("telephone").isNumeric(),
+  body("dob").custom((value) => {
+    let enteredDate = new Date(value);
+    let todaysDate = new Date();
+    if (enteredDate > todaysDate) {
+      throw new Error("Invalid Date");
+    }
+    return true;
+  }),
+  body("gender").notEmpty(),
+  body("address").notEmpty(),
 
   // Add more validation rules as needed for other form fields
   (req, res, next) => {
@@ -33,7 +42,7 @@ const validateForm = [
 app.post("/submit-form", validateForm, (req, res) => {
   // If the form passes validation, proceed with further logic
   // req.body contains the validated form fields
-  res.status(200).json({ body : req.body });
+  res.status(200).json({ body: req.body });
 });
 
 // Start the server
